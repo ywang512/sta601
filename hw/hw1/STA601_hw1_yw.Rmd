@@ -1,0 +1,224 @@
+---
+title: "STA 601/360 Homework 1"
+author: "Yifei Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    highlight: tango
+    theme: cerulean
+---
+
+```{r setup, message=F, warning=F, echo=F}
+library(tidyverse)
+require(magrittr)
+require(plyr)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+
+## Exec 1. Hoff 2.3 Full conditionals: Let $X$, $Y$, $Z$ be random variables with joint density (discrete or continuous) $p(x,y,z) \propto f(x,z)g(y,z)h(z)$. Show that 
+
+### (a) $p(x|y,z) \propto f(x,z)$, i.e. $p(x|y,z)$ is a function of $x$ and $z$; 
+
+Since
+
+$$
+\begin{aligned}
+p(x,y,z) &\propto f(x,z)g(y,z)h(z) \\
+p(y,z) &= \int_{X}p(x,y,z)dx \\
+       &\propto \int_{X}f(x,z)g(y,z)h(z)dx \\
+       &\propto g(y,z)h(z) \int_{X}f(x,z)dx
+\end{aligned}
+$$
+
+Because $p(x|y,z)$ is a function of $x$, we have
+
+$$
+\begin{aligned}
+p(x|y,z) &= \frac{p(x,y,z)}{p(y,z)} \\
+         &= \frac{f(x,z)g(y,z)h(z)}{g(y,z)h(z) \int_{X}f(x,z)dx)} \\
+         &= \frac{f(x,z)}{\int_{X}f(x,z)dx} \\
+         &\propto f(x,z)
+\end{aligned}
+$$
+
+That is, $p(x|y,z)$ is a function of $x$ and $z$.
+
+
+### (b) $p(y|x, z) \propto g(y, z)$, i.e. $p(y|x, z)$ is a function of $y$ and $z$; 
+
+Since
+
+$$
+\begin{aligned}
+p(x,y,z) &\propto f(x,z)g(y,z)h(z) \\
+p(x,z) &= \int_{Y}p(x,y,z)dy \\
+       &\propto \int_{Y}f(x,z)g(y,z)h(z)dy \\
+       &\propto f(x,z)h(z) \int_{Y}g(y,z)dy
+\end{aligned}
+$$
+
+Because $p(y|x,z)$ is a function of $y$, we have
+
+$$
+\begin{aligned}
+p(y|x,z) &= \frac{p(x,y,z)}{p(x,z)} \\
+         &= \frac{f(x,z)g(y,z)h(z)}{f(x,z)h(z) \int_{Y}g(y,z)dy} \\
+         &= \frac{g(y,z)}{\int_{Y}g(y,z)dy} \\
+         &\propto g(y,z)
+\end{aligned}
+$$
+
+That is, $p(y|x, z)$ is a function of $y$ and $z$.
+
+
+### (c) $X$ and $Y$ are conditionally independent given $Z$.
+
+First need to prove that $p(x \mid z) = p(x \mid y,z)$ and $p(y \mid z) = p(y \mid x,z)$
+
+$$
+\begin{aligned}
+p(x \mid z) &= \frac{p(x, z)}{p(z)} \\
+            &= \frac{\int_Y p(x, y, z) dy}{\int_Y\int_X p(x, y, z) dydx} \\
+            &= \frac{\int_Y f(x, z) g(y, z) h(z) dy}{\int_Y \int_X f(x, z) g(y, z) h(z) dy dx} \\
+            &= \frac{f(x, z) h(z) \int_Y g(y, z) \; dy}{h(z) \left( \int_Y g(y, z) dy \right) \left( \int_X f(x, z) dx \right)} \\
+            &= \frac{f(x, z)}{\int_X f(x, z) dx} \\
+            &= p(x \mid y, z)
+\end{aligned}
+$$
+
+Similar to $p(x \mid z)$, we have
+
+$$
+\begin{aligned}
+p(y \mid z) &= \frac{p(y, z)}{p(z)} \\
+            &= \frac{\int_X p(x, y, z) dx}{\int_Y\int_X p(x, y, z) dydx} \\
+            &= \frac{\int_X f(x, z) g(y, z) h(z) dx}{\int_Y \int_X f(x, z) g(y, z) h(z) dy dx} \\
+            &= \frac{g(y, z) h(z) \int_X f(x, z) \; dx}{h(z) \left( \int_Y g(y, z) dy \right) \left( \int_X f(x, z) dx \right)} \\
+            &= \frac{g(y, z)}{\int_Y g(y, z) dx} \\
+            &= p(y \mid x, z)
+\end{aligned}
+$$
+
+Therefore we get,
+
+$$
+\begin{aligned}
+p(x, y \mid z) &= p(x \mid y, z) \, p(y \mid z) \\
+               &= p(x \mid z) \, p(y \mid z)
+\end{aligned}
+$$
+
+This shows that $X$ and $Y$ are conditionally indepentdent given $Z$.
+
+
+## Exec 2. Hoff 2.6 Conditional independence: Suppose events $A$ and $B$ are conditionally independent given $C$, which is written $A \bot B \mid C$. Show that this implies that $A^c \bot B \mid C$, $A \bot B^c \mid C$, and $A^c \bot B^c \mid C$, where $A^c$ means “not $A$.” Find an example where $A \bot B \mid C$ holds but $A \bot B \mid C^c$ does not hold.
+
+### Part (a)
+
+If events $A$ and $B$ are conditionally independent given $C$, we have 
+
+$$
+p(A, B \mid C) = p(A \mid C) \; p(B \mid C)
+$$
+
+For $A^c \bot B \mid C$ we have,
+
+$$
+\begin{aligned}
+p(A^c, B \mid C) &= p(B \mid C) - p(A, B \mid C) \\
+                 &= p(B \mid C) - p(A \mid C) \; p(B \mid C) \\
+                 &= p(B \mid C) \, (1 - p(A \mid C)) \\
+                 &= p(B \mid C) \, p(A^c \mid C)
+\end{aligned}
+$$
+
+For $A \bot B^c \mid C$ we have,
+
+$$
+\begin{aligned}
+p(A, B^c \mid C) &= p(A \mid C) - p(A, B \mid C) \\
+                 &= p(A \mid C) - p(A \mid C) \; p(B \mid C) \\
+                 &= p(A \mid C) \, (1 - p(B \mid C)) \\
+                 &= p(A \mid C) \, p(B^c \mid C)
+\end{aligned}
+$$
+
+For $A^c \bot B^c \mid C$ we have,
+
+$$
+\begin{aligned}
+p(A^c, B^c \mid C) &= p(B^c \mid C) - p(A, B^c \mid C) \\
+                   &= p(B^c \mid C) - p(B^c \mid C) \, p(A \mid C) \\
+                   &= p(B^c \mid C) \, (1 - p(A \mid C)) \\
+                   &= p(B^c \mid C) \, p(A^c \mid C)
+\end{aligned}
+$$
+
+### Part (b)
+
+Suppose Chichi and Tina are playing a mind-reading game. Think about these 3 events:
+
+- $A = \{\text{Chichi is thinking of the number 3}\}$
+
+- $B = \{\text{Tina claims Chichi is thinking of the number 3}\}$
+
+- $C = \{\text{Tina does not have extrasensory perception}\}$
+
+In this case, when $C$ is true, we know that both Chichi and Tina thinking of random number, so $A$ and $B$ are independent, which is $A \bot B \mid C$. However when $C$ is not true, Tina knows exactly the number Chichi is thinking of. This shows that $A \bot B \mid C^c$ do not hold.
+
+
+## Exec 3. There are three coins in a bag; two fair coins (probability of heads = probability of tails) and one fake coin (probability of heads = 1). 
+
+### Part a. You reach in and select one coin at random and throw it in the air. What is the probability that it lands on heads?
+
+According to the rules of marginal probability, 
+
+$$
+\begin{aligned}
+P(\text{head}) 
+&= P(\text{head} \,|\, \text{fake})P(\text{fake}) + P(\text{head} \,|\, \text{fair})P(\text{fair}) \\
+&= 1 \times \frac13 + \frac12 \times \frac23\\
+&= \frac23
+\end{aligned}
+$$
+
+### Part b. You reach in and select one coin at random and throw it in the air and get heads. What is the probability that it is the fake coin?
+
+According to Bayes rules,
+
+$$
+\begin{aligned}
+P(\text{fake} \,|\, \text{head}) 
+&= \frac{P(\text{head} \,|\, \text{fake})P(\text{fake})}{P(\text{head})} \\
+&= \frac{1 \times \frac13}{\frac23} \\
+&= \frac12
+\end{aligned}
+$$
+
+
+## Exec 4. Monty Hall Problem! There are three doors on stage and a host hides a prize behind one of the doors and goats behind the other two doors. A contestant picks one of the three doors (say door 1) and then the game show host opens one of the remaining two doors (say door 3), making sure to reveal a goat. Should the contestant switch to door 2?
+- Prior knowledge: The prize originally had 1/3 probability of being behind any of the three doors.
+- The host's model: he knows which door has the prize. If he has to choose between a door with a goat and one with a prize, he chooses the one with the goat. If he has to choose between two doors with goats, he picks one of the doors with probability 1/2.
+
+Supppose the prize is $z$ and the host open door $d$. Then we have the prior of $p(z = 1) = p(z=2) = p(z=3) = \frac13$ and 
+
+$$
+P(y=3 \mid z=1) = \frac12 \\
+P(y=3 \mid z=2) = 1 \\
+P(y=3 \mid z=3) = 0
+$$
+
+Then we have
+
+$$
+\frac{P(z=2 \mid y=3)}{P(z=1 \mid y=3)} = \frac{P(y=3 \mid z=2) \, P(z=2)}{P(y=3 \mid z=1) \, P(z=1)}
+= \frac{1 \times \frac13}{\frac12 \times \frac13} = 2
+$$
+
+This means that in the above case, the probability of winning prize for switching to door 2 is twice of staying with door 1. Thus the contestant should switch to door 2 to achieve a higher winning chances.
+
+## Exec 5. Everyone: Read Why Isn't Everyone a Bayesian? 
+
