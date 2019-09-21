@@ -1,0 +1,90 @@
+---
+title: "Untitled"
+author: "Yifei Wang"
+date: "9/17/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+a1 <- 120 + 117
+b1 <- 10 + 10
+a2 <- 12 + 113
+b2 <- 1 + 13
+N <- 10000
+
+theta_A <- rgamma(N, a1, b1)
+theta_B <- rgamma(N, a2, b2)
+pre_Y_A <- rpois(N, theta_A)
+pre_Y_B <- rpois(N, theta_B)
+
+Pr4 <- mean(pre_Y_B < pre_Y_A)
+Pr4
+```
+
+```{r}
+N <- 10000
+
+a1 <- 120 + 117
+b1 <- 10 + 10
+theta_A <- rgamma(N, a1, b1)
+pre_Y_A <- rpois(N, theta_A)
+
+Pr5 <- c()
+for (n0 in seq(1, 500)) {
+  a2 <- 12 * n0 + 113
+  b2 <- n0 + 13
+  theta_B <- rgamma(N, a2, b2)
+  pre_Y_B <- rpois(N, theta_B)
+  Pr5[n0] <- mean(pre_Y_B < pre_Y_A)
+}
+
+plot(seq(1, 500), Pr5, xlab = "n0", ylab = "Pr(Y_B < Y_A)",
+     main = "Probability of Predictive Y_B < Y_A with Different n0 (priors)")
+```
+
+We know from the proof from the book that the predictive distribution of Poisson is negative binomial distribuiton with parameters $(a+\sum y_i, b+n)$. In this scenario, they would be
+
+$$
+\begin{aligned}
+a &= 120 \\
+b &= 10 \\
+\sum y_i &= 117 \\
+n &= 10 \\
+p(\tilde Y_A \mid y_1, \ldots, y_n) &= \frac{\Gamma(237+\tilde Y_A)}{\Gamma(\tilde Y_A+1)\Gamma(237)} \left(\frac{20}{21}\right)^{237} \left(\frac{1}{21}\right)^{\tilde Y_A}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+a &= 12 \times n_0 \\
+b &= n_0 \\
+\sum y_i &= 113 \\
+n &= 13 \\
+p(\tilde Y_B \mid y_1, \ldots, y_n) &= \frac{\Gamma(125+\tilde Y_B)}{\Gamma(\tilde Y_B+1)\Gamma(125)} \left(\frac{14}{15}\right)^{125} \left(\frac{1}{15}\right)^{\tilde Y_B} 
+\end{aligned}
+$$
+
+```{r}
+N <- 100000
+
+n1 <- 237
+p1 <- 20 / 21
+pre_Y_A <- rnbinom(N, size = n1, prob = p1)
+
+n0 <- seq(1, 50)
+Pr4 <- c()
+for (n in n0) {
+  n2 <- 12 * n
+  p2 <- 14 / 15
+  pre_Y_B <- rnbinom(N, size = n2, prob = p2)
+  Pr4[n] <- mean(pre_Y_B < pre_Y_A) 
+}
+
+plot(n0, Pr4, xlab = "n0", ylab = "Pr(Y_B < Y_A)",
+     main = "Probability of Predictive Y_B < Y_A with Different n0 (priors)")
+```
