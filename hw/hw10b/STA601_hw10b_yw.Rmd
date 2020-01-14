@@ -1,0 +1,138 @@
+---
+title: "STA 601/360 Homework 10b"
+author: "Yifei Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    highlight: tango
+    theme: cerulean
+---
+
+```{r setup, message=F, warning=F, echo=F}
+library(tidyverse)
+require(magrittr)
+require(plyr)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+set.seed(1)
+```
+
+
+## 1. O-ring failure led to the Challenger disaster. We study this phenomena by considering the temperatures at which the O-ring fails. 
+
+```{r}
+# y=1 indicates faliure
+Y <- c(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+X <- c(53, 57, 58, 63, 66, 67, 67, 67, 68, 69, 70, 70, 70, 70, 72, 73, 75, 75, 76, 76, 78, 79, 81)
+```
+
+## 2. What is the joint sampling distribution?
+
+
+## 3. Fit a generalized linear model to the data in R. What are the odds of O-ring failure for the shuttle at 72 degrees (report to 3 decimal places)?
+
+```{r}
+logit_lm = glm(Y ~ X + 1, family = "binomial")
+predict.glm(logit_lm, data.frame(X = 72), type = "link")
+```
+
+
+## 4. What is the acceptance probability?
+
+```{r}
+a_hat = logit_lm$coefficients[1]
+b_hat = logit_lm$coefficients[2]
+b0 = exp(a_hat + 0.577)
+```
+
+
+## 5. Implement the above Metropolis-Hastings algorithm. Start it at the MLE and run it for 10000 iterations.
+
+
+
+
+```{r}
+# target density function
+f = function(x) {
+  a = x[1]
+  b = x[2]
+  likelihood = exp(sum( Y*(a+b*X) - log(1+exp(a+b*X)) ))
+  dab = exp(a) * exp(-exp(a)/b0) / b0
+  return(likelihood * dab)
+}
+
+# density function for the proposal distribution
+dprop = function(conditioned_on, x) {
+  a = x[1]
+  b = x[2]
+  da = exp(a) * exp(-exp(a)/b0)
+  db = dnorm(b, mean = b_hat, sd = sqrt(0.01))
+  return(da * db)
+}
+
+# sampling from the proposal distribution
+rprop <- function(x) { 
+    a <- log(rexp(1, 1 / exp(a_hat + 0.577))); 
+    b <- rnorm(1, b_hat, sqrt(0.1^2)); 
+    return(c(a, b))
+}
+
+```
+
+```{r}
+## General code for the Metropolis-Hastings algorithm
+
+# INPUT:
+#    x0 = starting point of the chain (possibly a vector)
+#     f = target density function
+# dprop = density function for the proposal distribution
+# rprop = sampling from the proposal distribution
+#     N = Monte Carlo sample size
+#     B = burn-in length
+
+# OUTPUT:
+#    x = matrix of MH samples (one in each row)
+#   fx = values of the posterior density at the sampled points
+# rate = proportion of times the proposal draw was accepted
+
+mh <- function(x0, f, dprop, rprop, N, B) {
+
+  x <- matrix(NA, N + B, length(x0))
+  fx <- rep(NA, N + B)
+  x[1,] <- x0
+  fx[1] <- f(x0)
+  ct <- 0
+  for(i in 2:(N + B)) {
+
+    u <- rprop(x[i-1,])
+    fu <- f(u)
+    r <- log(fu) + log(dprop(x[i-1,], u)) - log(fx[i-1]) - log(dprop(u, x[i-1,]))
+    R <- min(exp(r), 1)
+
+    if(runif(1) <= R) {
+
+      ct <- ct + 1
+      x[i,] <- u
+      fx[i] <- fu
+
+    } else {
+
+      x[i,] <- x[i-1,]
+      fx[i] <- fx[i-1]
+
+    }
+
+  }
+  out <- list(x=x[-(1:B),], fx=fx[-(1:B)], rate=ct / (N + B))
+  return(out)
+
+}
+```
+
+```{r}
+results = mh(x0 = c(a_hat, b_hat), f = f, dprop = dprop, rprop = rprop, N = 10000, B = 0)
+results[3]
+```
+
+

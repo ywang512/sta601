@@ -1,0 +1,133 @@
+---
+title: "STA 601/360 Homework 10"
+author: "Yifei Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    highlight: tango
+    theme: cerulean
+---
+
+```{r setup, message=F, warning=F, echo=F}
+library(tidyverse)
+require(magrittr)
+require(plyr)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+set.seed(1)
+```
+
+
+## 1. Hoff problem 10.1: Reflecting random walks
+
+**It is often useful in MCMC to have a proposal distribution which is both symmetric and has support only on a certain region. For example, if we know $\theta > 0$, we would like our proposal distribution $J(\theta_1 \vert \theta_0)$ to have support on positive $\theta$ values. Consider the following proposal algorithm:**
+
+- **sample $\tilde{\theta} \sim \text{uniform}(\theta_0 - \delta, \theta_0 + \delta)$;**
+
+- **if $\tilde{\theta} < 0$, set $\theta = -\tilde{\theta}$;**
+
+- **if $\tilde{\theta} \geq 0$, set $\theta = \tilde{\theta}$.**
+
+**In other words, $\theta_1 = |\tilde{\theta}|$. Show that the above algorithm draws samples from a symmetric proposal distribution which has support on positive values of $\theta$. It may be helpful to write out the associated proposal density $J(\theta_1 \vert \theta_0)$ under the two conditions $\theta_0 \leq \delta$ and $\theta_0 > \delta$ separately.**
+
+
+Let's discuss two conditions $0 < \theta_0 + \theta_1 < \delta$ and $\theta_0 + \theta_1 \geq \delta$ separately. When $\theta_0 + \theta_1 \geq \delta$ we have $0 < |\theta_0 - \delta| \leq \theta_1 = \tilde{\theta} \leq \theta_0 + \delta$. Thus we have
+
+$$
+J(\theta_1 \vert \theta_0) = J(\tilde{\theta} \vert \theta_0) = \frac{1}{2\delta} = J(\theta_0 \vert \tilde{\theta}) = J(\theta_0 \vert \theta_1)
+$$
+
+When $0 < \theta_0 + \theta_1 \leq \delta$, we have $0 < \theta_1 < |\theta_0 - \delta|$ and $\theta_0 - \delta \leq \tilde{\theta} \leq \theta_0 + \delta$. So for $\theta_1$ it is either $0 < \theta_1 = \tilde{\theta}$ or $\tilde{\theta} < 0 < \theta_1 = -\tilde{\theta}$, and similarly for $\theta_0$. Thus we have
+
+$$
+\begin{aligned}
+J(\theta_1 \vert \theta_0) 
+  &= J(\theta_1 = \tilde{\theta} \vert \theta_0) + J(\theta_1 = -\tilde{\theta} \vert \theta_0) \\
+  &= \frac{1}{2\delta} + \frac{1}{2\delta} \\
+  &= J(\theta_0 = \tilde{\theta} \vert \theta_1) + J(\theta_0 = -\tilde{\theta} \vert \theta_1) \\
+  &= J(\theta_0 \vert \theta_1) 
+\end{aligned}
+$$
+
+The above two conditions cover all poosibilities of the choice of $theta_0$ and $\theta_1$, and under either conditions we prove that $J(\theta_1 \vert \theta_0) = J(\theta_0 \vert \theta_1)$. Thus we could say that the proposal algorithm is a symmetric distribution.
+
+
+## 2. Math Problem
+
+**Consider the following sampling model**
+
+$$
+y_1,\dots,y_n|\theta\sim p(y|\theta_1,\theta_2),
+$$
+
+**and prior**
+
+$$
+\theta_1\sim g(\theta_1),\ \theta_2\sim h(\theta_2)
+$$
+
+**where**
+
+$$
+\theta_1, \theta_2 \in \mathbb R
+$$
+
+**Write down in the simplest form possible the acceptance probability for Metropolis-Hastings based on the following proposals:**
+
+- **Full conditional:**
+
+$$
+J(\theta_1^\star|\theta_1^{(s)},\theta_2^{(s)}) = p(\theta_1|y_1,\dots,y_n,\theta_2^{(s)})
+$$
+
+- **Prior:**
+
+$$
+J(\theta_1^\star|\theta_1^{(s)},\theta_2^{(s)})=g(\theta_1)
+$$
+
+- **Random walk:**
+
+$$
+J(\theta_1^\star|\theta_1^{(s)},\theta_2^{(s)})= Normal(\theta_1^{(s)},\delta^2)
+$$
+
+
+We know that the acceptance probabiliy of Metropolis-Hastings algorithm (when sampling a new $\theta_1$) takes the form of 
+
+$$
+r = \frac{p(\theta_1^{\star}, \theta_2^{(s)} \vert y_1, \ldots, y_n)}{p(\theta_1^{(s)}, \theta_2^{(s)} \vert y_1, \ldots, y_n)} \times \frac{J(\theta_1^{(s)} \vert \theta_1^{\star}, \theta_2^{(s)})}{J(\theta_1^{\star} \vert \theta_1^{(s)}, \theta_2^{(s)})}
+$$
+
+- **Full conditional:**
+
+$$
+\begin{aligned}
+r &= \frac{p(\theta_1^{\star}, \theta_2^{(s)} \vert y_1, \ldots, y_n)}{p(\theta_1^{(s)}, \theta_2^{(s)} \vert y_1, \ldots, y_n)} \times \frac{J(\theta_1^{(s)} \vert \theta_1^{\star}, \theta_2^{(s)})}{J(\theta_1^{\star} \vert \theta_1^{(s)}, \theta_2^{(s)})} \\
+  &= \frac{p(\theta_2^{(s)} \vert y_1, \ldots, y_n) \, p(\theta_1^{\star} \vert y_1, \ldots, y_n, \theta_2^{(s)})}{p(\theta_2^{(s)} \vert y_1, \ldots, y_n) \, p(\theta_1^{(s)} \vert y_1, \ldots, y_n, \theta_2^{(s)})} \times \frac{p(\theta_1^{(s)}|y_1,\dots,y_n,\theta_2^{(s)})}{p(\theta_1^{\star}|y_1,\dots,y_n,\theta_2^{(s)})} \\
+  &= 1
+\end{aligned}
+$$
+
+
+- **Prior:**
+
+$$
+\begin{aligned}
+r &= \frac{p(\theta_1^{\star}, \theta_2^{(s)} \vert y_1, \ldots, y_n)}{p(\theta_1^{(s)}, \theta_2^{(s)} \vert y_1, \ldots, y_n)} \times \frac{J(\theta_1^{(s)} \vert \theta_1^{\star}, \theta_2^{(s)})}{J(\theta_1^{\star} \vert \theta_1^{(s)}, \theta_2^{(s)})} \\
+  &= \frac{p(y_1, \dots, y_n \vert \theta_1^{\star}, \theta_2^{(s)}) \, g(\theta_1^{\star}) \, h(\theta_2^{(s)})}{p(y_1, \dots, y_n \vert \theta_1^{(s)}, \theta_2^{(s)}) \, g(\theta_1^{(s)}) \, h(\theta_2^{(s)})} \times \frac{g(\theta_1^{(s)})}{g(\theta_1^{\star})} \\
+  &= \frac{p(y_1, \dots, y_n \vert \theta_1^{\star}, \theta_2^{(s)})}{p(y_1, \dots, y_n \vert \theta_1^{(s)}, \theta_2^{(s)})}
+\end{aligned}
+$$
+
+
+- **Random walk:**
+
+$$
+\begin{aligned}
+r &= \frac{p(\theta_1^{\star}, \theta_2^{(s)} \vert y_1, \ldots, y_n)}{p(\theta_1^{(s)}, \theta_2^{(s)} \vert y_1, \ldots, y_n)} \times \frac{J(\theta_1^{(s)} \vert \theta_1^{\star}, \theta_2^{(s)})}{J(\theta_1^{\star} \vert \theta_1^{(s)}, \theta_2^{(s)})} \\
+  &= \frac{p(y_1, \dots, y_n \vert \theta_1^{\star}, \theta_2^{(s)}) \, g(\theta_1^{\star}) \, h(\theta_2^{(s)})}{p(y_1, \dots, y_n \vert \theta_1^{(s)}, \theta_2^{(s)}) \, g(\theta_1^{(s)}) \, h(\theta_2^{(s)})} \times \frac{\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac1{2\delta^2}(\theta_1^{(s)}-\theta_1^{\star})^2\right)}{\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac1{2\delta^2}(\theta_1^{\star}-\theta_1^{(s)})^2\right)} \\
+  &= \frac{p(y_1, \dots, y_n \vert \theta_1^{\star}, \theta_2^{(s)}) \, g(\theta_1^{\star})}{p(y_1, \dots, y_n \vert \theta_1^{(s)}, \theta_2^{(s)}) \, g(\theta_1^{(s)})}
+\end{aligned}
+$$
